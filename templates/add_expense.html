@@ -1,0 +1,82 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<div class="form-card">
+    <div class="form-header">
+        <div class="form-icon">💸</div>
+        <div>
+            <h2>Add Expense</h2>
+            <p class="form-subtitle">Quickly record a new expense with category, amount, and date.</p>
+        </div>
+    </div>
+
+    <form method="POST" class="form-grid">
+        <div class="form-group">
+            <label class="form-label" for="category">Category</label>
+            <select id="category" name="category" class="form-select" required>
+                <option value="">Select Category</option>
+                <option>🍔 Food</option>
+                <option>✈ Travel</option>
+                <option>🛒 Shopping</option>
+                <option>🎓 Education</option>
+                <option>🏥 Medical</option>
+                <option>🏠 Rent</option>
+                <option>🎬 Entertainment</option>
+                <option value="other">💡 Other</option>
+            </select>
+            
+        </div>
+
+        <div id="custom-category-group" class="form-group hidden-field">
+            <label class="form-label" for="custom_category">Custom Category</label>
+            <input id="custom_category" type="text" name="custom_category" class="form-control" placeholder="e.g. 🚗 Fuel" />
+        </div>
+
+        <div class="form-group">
+            <label class="form-label" for="amount">Amount</label>
+            <input id="amount" type="number" inputmode="numeric" step="1" min="1" name="amount" class="form-control" placeholder="Enter amount" required />
+            
+        </div>
+
+        <div class="form-group">
+            <label class="form-label" for="date">Date</label>
+            <input id="date" type="date" name="date" class="form-control" required />
+        </div>
+
+        <div class="form-group full-width">
+            <label class="form-label" for="description">Description</label>
+            <input id="description" type="text" name="description" class="form-control" placeholder="Optional note about this expense" />
+        </div>
+
+        <div class="form-group full-width">
+            <button type="submit" class="btn btn-primary btn-lg w-100">Add Expense</button>
+        </div>
+    </form>
+
+    {% if success_message %}
+    <div class="success-message">✅ {{ success_message }}</div>
+    {% endif %}
+</div>
+
+<script>
+    const categorySelect = document.getElementById('category');
+    const customCategoryGroup = document.getElementById('custom-category-group');
+    const customCategoryInput = document.getElementById('custom_category');
+
+    function updateCustomCategoryVisibility() {
+        if (categorySelect.value === 'other') {
+            customCategoryGroup.style.display = 'flex';
+            customCategoryInput.required = true;
+        } else {
+            customCategoryGroup.style.display = 'none';
+            customCategoryInput.value = '';
+            customCategoryInput.required = false;
+        }
+    }
+
+    categorySelect.addEventListener('change', updateCustomCategoryVisibility);
+    updateCustomCategoryVisibility();
+</script>
+
+{% endblock %}

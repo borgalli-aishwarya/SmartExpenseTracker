@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<div class="container mt-4 charts-dashboard">
+
+    <div class="charts-header mb-4">
+        <div>
+            <h2>Charts</h2>
+            <p class="text-muted">Only your spending visuals, with no extra dashboard controls.</p>
+        </div>
+    </div>
+
+    <div class="chart-grid">
+        <div class="chart-card chart-card-large">
+            <h4>Category Distribution</h4>
+            <img src="/{{ pie_chart }}" class="chart-img" alt="Pie chart" />
+        </div>
+
+        <div class="chart-card chart-card-large">
+            <h4>Total Expense by Category</h4>
+            <img src="/{{ bar_chart }}" class="chart-img" alt="Bar chart" />
+        </div>
+
+        <div class="chart-card chart-card-large">
+            <h4>{{ third_title }}</h4>
+            <img src="/{{ third_chart }}" class="chart-img" alt="Trend chart" />
+        </div>
+    </div>
+
+</div>
+
+{% endblock %}

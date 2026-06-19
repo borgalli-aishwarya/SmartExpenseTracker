@@ -1,0 +1,128 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<style>
+
+    body{
+        background: linear-gradient(135deg,#667eea,#764ba2);
+        min-height:100vh;
+        color:white;
+    }
+
+    .hero{
+        text-align:center;
+        padding-top:120px;
+    }
+
+    .hero h1{
+        font-size:60px;
+        font-weight:bold;
+    }
+
+    .hero p{
+        font-size:24px;
+    }
+
+    .btn-custom{
+        padding:12px 35px;
+        font-size:20px;
+        border-radius:30px;
+        margin:10px;
+    }
+
+    .feature-card{
+        background:white;
+        color:black;
+        border-radius:15px;
+        padding:20px;
+        box-shadow:0 5px 15px rgba(0,0,0,0.2);
+        text-align:center;
+    }
+
+    footer{
+        margin-top:80px;
+        text-align:center;
+        color:white;
+    }
+
+</style>
+
+<div class="container hero">
+
+    <h1>💰 Smart Expense Tracker</h1>
+
+    <p>
+        Manage Your Expenses and Budget Easily
+    </p>
+
+    <a href="/login" class="btn btn-success btn-custom">
+        Login
+    </a>
+
+    <a href="/register" class="btn btn-warning btn-custom">
+        Register
+    </a>
+
+</div>
+
+<div class="container mt-5">
+
+    <div class="row">
+
+        <div class="col-md-4 mb-4">
+
+            <div class="feature-card">
+
+                <h3>📊 Track Expenses</h3>
+
+                <p>
+                    Record daily expenses and monitor spending.
+                </p>
+
+            </div>
+
+        </div>
+
+        <div class="col-md-4 mb-4">
+
+            <div class="feature-card">
+
+                <h3>💰 Set Budget</h3>
+
+                <p>
+                    Create monthly budgets and stay on track.
+                </p>
+
+            </div>
+
+        </div>
+
+        <div class="col-md-4 mb-4">
+
+            <div class="feature-card">
+
+                <h3>📈 View Reports</h3>
+
+                <p>
+                    Analyze expenses with charts and summaries.
+                </p>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+<footer>
+
+    <h5>
+        Smart Expense Tracker © 2026
+    </h5>
+
+</footer>
+
+{% endblock %}

@@ -1,0 +1,138 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<div class="dashboard-header mb-4">
+    <div>
+        <h1>Dashboard</h1>
+        <p class="text-muted">A quick snapshot of your budget, spending, and recent activity.</p>
+    </div>
+</div>
+
+
+{% if total_expenses > budget_amount and budget_amount > 0 %}
+
+<div class="container mt-3">
+
+    <div class="alert alert-danger text-center">
+
+        <h4>
+            ⚠ Budget usage
+        </h4>
+
+        <h5 class="text-center mt-3">
+
+    Budget Usage :
+    {{ percentage|round(0) }}%
+
+</h5>
+
+    </div>
+
+</div>
+
+{% if alert_message %}
+
+<div class="container mt-3">
+
+    <div class="alert alert-{{ alert_class }} text-center">
+
+        <h5>
+
+            {{ alert_message }}
+
+        </h5>
+
+    </div>
+
+</div>
+
+{% endif %}
+
+{% endif %}
+
+<div class="row g-3 mb-4">
+    <div class="col-md-4">
+        <div class="stat-card border-start border-success interactive-card" data-title="Total spent this month">
+            <h5>Total Expenses</h5>
+            <h2 class="stat-value" data-value="{{ total_expenses }}">₹0</h2>
+            <p class="text-success">Current total</p>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="stat-card border-start border-primary interactive-card" data-title="Your monthly budget">
+            <h5>Budget</h5>
+            <h2 class="stat-value" data-value="{{ budget_amount }}">₹0</h2>
+            <p class="text-primary">Monthly goal</p>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="stat-card border-start border-warning interactive-card" data-title="What remains from your budget">
+            <h5>Remaining</h5>
+            <h2 class="stat-value" data-value="{{ remaining }}">₹0</h2>
+            <p class="text-warning">Left to spend</p>
+        </div>
+    </div>
+</div>
+
+
+
+    {% if expenses %}
+    <div class="table-responsive">
+        <table class="expense-table mb-0">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Category</th>
+                    <th>Amount</th>
+                    <th>Description</th>
+                    <th>Date</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for expense in expenses %}
+                <tr class="table-row-clickable">
+                    <td>{{ expense.id }}</td>
+                    <td>{{ expense.category }}</td>
+                    <td>₹{{ expense.amount }}</td>
+                    <td>{{ expense.description }}</td>
+                    <td>{{ expense.date }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <div class="empty-state p-4 text-center">
+        <h5>No recent expenses yet.</h5>
+        <p class="text-muted">Add an expense to start tracking your spending.</p>
+        <a href="/add_expense" class="btn btn-primary">Add Expense</a>
+    </div>
+    {% endif %}
+</div>
+
+<script>
+    document.querySelectorAll('.stat-value').forEach((node) => {
+        const target = Number(node.getAttribute('data-value')) || 0;
+        let current = 0;
+        const step = Math.max(1, Math.round(target / 40));
+        const interval = setInterval(() => {
+            current += step;
+            if (current >= target) {
+                node.textContent = '₹' + target;
+                clearInterval(interval);
+            } else {
+                node.textContent = '₹' + current;
+            }
+        }, 12);
+    });
+
+    document.querySelectorAll('.interactive-card').forEach((card) => {
+        card.addEventListener('click', () => {
+            const title = card.dataset.title || 'Detail';
+            alert(title);
+        });
+    });
+</script>
+
+{% endblock %}

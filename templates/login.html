@@ -1,0 +1,61 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="auth-page">
+    <div class="auth-card">
+        <div class="form-header">
+            <div class="form-icon">🔐</div>
+            <div>
+                <h2>Login</h2>
+              
+            </div>
+        </div>
+
+        {% if error_message %}
+        <div class="error-message">{{ error_message }}</div>
+        {% endif %}
+
+        <form method="POST" autocomplete="off">
+
+            <input
+                type="text"
+                name="prevent_autofill_username"
+                id="prevent_autofill_username"
+                style="position:absolute; left:-9999px; top:-9999px;"
+                tabindex="-1"
+                autocomplete="off">
+
+            <input
+                type="password"
+                name="prevent_autofill_password"
+                id="prevent_autofill_password"
+                style="position:absolute; left:-9999px; top:-9999px;"
+                tabindex="-1"
+                autocomplete="off">
+
+            <input
+                type="email"
+                name="email"
+                class="form-control mb-3"
+                placeholder="Email"
+                value="{{ request.form.email if request.method == 'POST' else '' }}"
+                autocomplete="off"
+                required>
+
+            <input
+                type="password"
+                name="password"
+                class="form-control mb-3"
+                placeholder="Password"
+                autocomplete="off"
+                required>
+
+            <button type="submit" class="btn btn-primary btn-lg w-100">
+                Login
+            </button>
+
+        </form>
+    </div>
+</div>
+
+{% endblock %}
