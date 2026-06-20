@@ -51,7 +51,7 @@ class Expense(db.Model):
     )
 
     date = db.Column(
-        db.String(50),
+        db.Date,
         nullable=False
     )
 

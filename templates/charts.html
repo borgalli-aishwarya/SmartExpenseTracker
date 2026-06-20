@@ -11,23 +11,96 @@
         </div>
     </div>
 
-    <div class="chart-grid">
-        <div class="chart-card chart-card-large">
-            <h4>Category Distribution</h4>
+    <div class="chart-grid" id="chartsGrid">
+        <div class="chart-card chart-card-large chart-clickable" role="button" tabindex="0" aria-label="Open category distribution chart" data-chart-title="Category Distribution" data-chart-src="/{{ pie_chart }}">
+
+            <div class="chart-card-head">
+                <h4 class="chart-card-title">Category Distribution</h4>
+            </div>
             <img src="/{{ pie_chart }}" class="chart-img" alt="Pie chart" />
         </div>
 
-        <div class="chart-card chart-card-large">
-            <h4>Total Expense by Category</h4>
+        <div class="chart-card chart-card-large chart-clickable" role="button" tabindex="0" aria-label="Open total expense by category chart" data-chart-title="Total Expense by Category" data-chart-src="/{{ bar_chart }}">
+            <div class="chart-card-head">
+                <h4 class="chart-card-title">Total Expense by Category</h4>
+            </div>
             <img src="/{{ bar_chart }}" class="chart-img" alt="Bar chart" />
         </div>
 
-        <div class="chart-card chart-card-large">
-            <h4>{{ third_title }}</h4>
+        <div class="chart-card chart-card-large chart-clickable" role="button" tabindex="0" aria-label="Open trend chart" data-chart-title="{{ third_title }}" data-chart-src="/{{ third_chart }}">
+            <div class="chart-card-head">
+                <h4 class="chart-card-title">{{ third_title }}</h4>
+            </div>
             <img src="/{{ third_chart }}" class="chart-img" alt="Trend chart" />
         </div>
     </div>
 
-</div>
+    <!-- Modal (single chart view) -->
+    <div class="chart-modal-overlay" id="chartModalOverlay" aria-hidden="true">
+        <div class="chart-modal" role="dialog" aria-modal="true" aria-labelledby="chartModalTitle">
+            <div class="chart-modal-header">
+                <h3 id="chartModalTitle" class="chart-modal-title">Chart</h3>
+                <button type="button" class="chart-modal-close" id="chartModalCloseBtn" aria-label="Close chart">✕</button>
+            </div>
+            <div class="chart-modal-body">
+                <img id="chartModalImage" class="chart-modal-img" src="" alt="Selected chart" loading="eager" />
+            </div>
+            <div class="chart-modal-footer">
+                <span class="text-muted">Press ESC to close</span>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        (function () {
+            const overlay = document.getElementById('chartModalOverlay');
+
+            const closeBtn = document.getElementById('chartModalCloseBtn');
+            const modalTitle = document.getElementById('chartModalTitle');
+            const modalImage = document.getElementById('chartModalImage');
+
+
+            const cards = document.querySelectorAll('.chart-clickable');
+
+            function openChart(card) {
+                const title = card.getAttribute('data-chart-title') || 'Chart';
+                const src = card.getAttribute('data-chart-src');
+
+                modalTitle.textContent = title;
+                modalImage.src = src;
+            overlay.classList.add('show');
+            overlay.setAttribute('aria-hidden', 'false');
+            document.body.style.overflow = 'hidden';
+            closeBtn.focus();
+        }
+
+        function closeChart() {
+            overlay.classList.remove('show');
+            overlay.setAttribute('aria-hidden', 'true');
+            modalImage.src = '';
+            document.body.style.overflow = '';
+        }
+
+        cards.forEach((card) => {
+            card.addEventListener('click', () => openChart(card));
+            card.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    openChart(card);
+                }
+            });
+        });
+
+        closeBtn.addEventListener('click', closeChart);
+
+        overlay.addEventListener('click', (e) => {
+            if (e.target === overlay) closeChart();
+        });
+
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') closeChart();
+        });
+    })();
+</script>
 
 {% endblock %}

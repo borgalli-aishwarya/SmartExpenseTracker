@@ -2,105 +2,86 @@
 
 {% block content %}
 
-<div class="dashboard-header mb-4">
-    <div>
+<form method="GET" class="dashboard-intro mb-4">
+    <div class="intro-copy">
         <h1>Dashboard</h1>
         <p class="text-muted">A quick snapshot of your budget, spending, and recent activity.</p>
     </div>
-</div>
 
-
-{% if total_expenses > budget_amount and budget_amount > 0 %}
-
-<div class="container mt-3">
-
-    <div class="alert alert-danger text-center">
-
-        <h4>
-            ⚠ Budget usage
-        </h4>
-
-        <h5 class="text-center mt-3">
-
-    Budget Usage :
-    {{ percentage|round(0) }}%
-
-</h5>
-
+    <div class="month-picker-card">
+        <label for="monthPicker">Select month</label>
+        <input
+            id="monthPicker"
+            type="month"
+            name="month"
+            value="{{ selected_month }}"
+            class="month-input"
+            onchange="this.form.submit()">
     </div>
+</form>
 
+{% if budget_amount > 0 and alert_message %}
+<div class="alert-custom alert alert-{{ alert_class or 'info' }} text-center mb-4">
+    <strong>{{ alert_message }}</strong>
 </div>
-
-{% if alert_message %}
-
-<div class="container mt-3">
-
-    <div class="alert alert-{{ alert_class }} text-center">
-
-        <h5>
-
-            {{ alert_message }}
-
-        </h5>
-
-    </div>
-
-</div>
-
 {% endif %}
 
-{% endif %}
-
-<div class="row g-3 mb-4">
-    <div class="col-md-4">
-        <div class="stat-card border-start border-success interactive-card" data-title="Total spent this month">
-            <h5>Total Expenses</h5>
-            <h2 class="stat-value" data-value="{{ total_expenses }}">₹0</h2>
-            <p class="text-success">Current total</p>
-        </div>
+<div class="dashboard-row mb-4">
+    <div class="stat-card interactive-card" data-title="Total spent this month">
+        <h5>Total Expenses</h5>
+        <h2 class="stat-value" data-value="{{ total_expenses }}">₹0</h2>
+        <p class="text-success">Current total</p>
     </div>
-    <div class="col-md-4">
-        <div class="stat-card border-start border-primary interactive-card" data-title="Your monthly budget">
-            <h5>Budget</h5>
-            <h2 class="stat-value" data-value="{{ budget_amount }}">₹0</h2>
-            <p class="text-primary">Monthly goal</p>
-        </div>
+    <div class="stat-card interactive-card" data-title="Your monthly budget">
+        <h5>Budget</h5>
+        <h2 class="stat-value" data-value="{{ budget_amount }}">₹0</h2>
+        <p class="text-primary">Monthly goal</p>
     </div>
-    <div class="col-md-4">
-        <div class="stat-card border-start border-warning interactive-card" data-title="What remains from your budget">
-            <h5>Remaining</h5>
-            <h2 class="stat-value" data-value="{{ remaining }}">₹0</h2>
-            <p class="text-warning">Left to spend</p>
-        </div>
+    <div class="stat-card interactive-card" data-title="What remains from your budget">
+        <h5>Remaining</h5>
+        <h2 class="stat-value" data-value="{{ remaining }}">₹0</h2>
+        {% if remaining < 0 %}
+        <p class="text-danger">Over budget by ₹{{ (-remaining)|round(2) }}</p>
+        {% elif budget_amount == 0 %}
+        <p class="text-muted">Set a budget to track spending</p>
+        {% else %}
+        <p class="text-warning">Left to spend</p>
+        {% endif %}
     </div>
 </div>
 
 
 
     {% if expenses %}
-    <div class="table-responsive">
-        <table class="expense-table mb-0">
-            <thead>
-                <tr>
-                    <th>ID</th>
-                    <th>Category</th>
-                    <th>Amount</th>
-                    <th>Description</th>
-                    <th>Date</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for expense in expenses %}
-                <tr class="table-row-clickable">
-                    <td>{{ expense.id }}</td>
-                    <td>{{ expense.category }}</td>
-                    <td>₹{{ expense.amount }}</td>
-                    <td>{{ expense.description }}</td>
-                    <td>{{ expense.date }}</td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
+    <div class="table-card">
+        <div class="table-card-header mb-3">
+            <h4>Recent expenses</h4>
+            <p class="text-muted">Showing the latest expenses for the selected month.</p>
+        </div>
+        <div class="table-responsive">
+            <table class="expense-table mb-0">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Category</th>
+                        <th>Amount</th>
+                        <th>Description</th>
+                        <th>Date</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for expense in expenses %}
+                    <tr class="table-row-clickable">
+                        <td>{{ expense.id }}</td>
+                        <td>{{ expense.category }}</td>
+                        <td>₹{{ expense.amount }}</td>
+                        <td>{{ expense.description }}</td>
+                        <td>{{ expense.date }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
     </div>
     {% else %}
     <div class="empty-state p-4 text-center">
@@ -109,7 +90,6 @@
         <a href="/add_expense" class="btn btn-primary">Add Expense</a>
     </div>
     {% endif %}
-</div>
 
 <script>
     document.querySelectorAll('.stat-value').forEach((node) => {

@@ -1,3 +1,4 @@
+from datetime import datetime
 from flask import Flask, render_template, request, redirect, session, url_for
 from models import db, User, Expense, Budget
 from urllib.parse import quote_plus
@@ -57,11 +58,22 @@ def dashboard():
     if not current_user:
         return redirect(url_for("login"))
 
+    selected_month = request.args.get(
+        "month",
+        datetime.now().strftime("%Y-%m")
+    )
+
+    year, month = map(int, selected_month.split("-"))
+
     total_expenses = (
         Expense.query.with_entities(
             db.func.sum(Expense.amount)
         )
         .filter_by(user_id=current_user.id)
+        .filter(
+            db.extract("year", Expense.date) == year,
+            db.extract("month", Expense.date) == month,
+        )
         .scalar()
         or 0
     )
@@ -83,16 +95,19 @@ def dashboard():
 
         if percentage >= 100:
             exceeded = total_expenses - budget_amount
-            alert_message = f"❌ Budget Exceeded by ₹{exceeded:.2f}"
+            alert_message = f"Budget exceeded by ₹{exceeded:.2f}"
             alert_class = "danger"
         elif percentage >= 90:
-            alert_message = "🚨 Warning! 90% of Budget Used"
+            alert_message = "90% of budget used"
+            alert_class = "warning"
+        elif percentage >= 80:
+            alert_message = "80% of budget used"
             alert_class = "warning"
         elif percentage >= 70:
-            alert_message = "⚠ Alert! 70% of Budget Used"
+            alert_message = "70% of budget used"
             alert_class = "info"
         else:
-            alert_message = "✅ Budget Under Control"
+            alert_message = "Budget on track"
             alert_class = "success"
 
     recent_expenses = (
@@ -132,6 +147,7 @@ def dashboard():
         percentage=percentage,
         alert_message=alert_message,
         alert_class=alert_class,
+        selected_month=selected_month,
     )
 
 
@@ -226,7 +242,10 @@ def add_expense():
         custom_category = request.form.get("custom_category", "").strip()
         amount = float(request.form["amount"])
         description = request.form["description"].strip()
-        date = request.form["date"]
+        date = datetime.strptime(
+            request.form["date"],
+            "%Y-%m-%d"
+        ).date()
 
         if category == "other":
             category = custom_category or "Other"
@@ -493,9 +512,24 @@ def charts():
     if not current_user:
         return redirect(url_for("login"))
 
-    expenses = Expense.query.filter_by(
-        user_id=current_user.id
+    selected_month = request.args.get(
+        "month",
+        datetime.now().strftime("%Y-%m")
+    )
+
+    year = int(selected_month.split("-")[0])
+    month = int(selected_month.split("-")[1])
+
+    expenses = Expense.query.filter(
+        Expense.user_id == current_user.id,
+        db.extract("year", Expense.date) == year,
+        db.extract("month", Expense.date) == month
     ).all()
+
+    total_expenses = sum(
+        expense.amount
+        for expense in expenses
+    )
 
     data = [
         {
@@ -515,6 +549,11 @@ def charts():
 
     df["amount"] = pd.to_numeric(df["amount"], errors="coerce").fillna(0)
     df["date"] = pd.to_datetime(df["date"], errors="coerce")
+
+    if df.empty:
+        df = pd.DataFrame(
+            [{"category": "No Data", "amount": 1, "date": pd.Timestamp.today()}]
+        )
 
     category_totals = df.groupby("category")["amount"].sum().sort_values(ascending=False)
     category_counts = df["category"].value_counts().sort_values(ascending=False)
@@ -591,6 +630,7 @@ def charts():
         category_count=int(df['category'].nunique()),
         average_expense=int(df['amount'].mean() if not df.empty else 0),
         top_category=category_totals.idxmax() if not category_totals.empty else None,
+        selected_month=selected_month,
     )
 
 
