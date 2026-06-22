@@ -11,20 +11,36 @@
         <a href="/export_excel" class="btn btn-success">📄 Download Excel</a>
     </div>
 
-    <form method="GET" action="/view_expenses" class="row g-3 mb-4">
+    <div class="row g-3 mb-4">
         <div class="col-md-6">
-            <label class="form-label" for="category">Filter by Category</label>
-            <select id="category" name="category" class="form-select">
-                <option value="" {% if not selected_category %}selected{% endif %}>All Categories</option>
-                {% for category in categories %}
-                <option value="{{ category }}" {% if selected_category == category %}selected{% endif %}>{{ category }}</option>
-                {% endfor %}
-            </select>
+            <form method="GET" action="/view_expenses" class="filter-card card p-3 h-100">
+                <div class="mb-3">
+                    <label class="form-label" for="category">Filter by Category</label>
+                    <select id="category" name="category" class="form-select">
+                        <option value="" {% if not selected_category %}selected{% endif %}>All Categories</option>
+                        {% for category in categories %}
+                        <option value="{{ category }}" {% if selected_category == category %}selected{% endif %}>{{ category }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <button type="submit" class="btn btn-primary w-100">Apply Category Filter</button>
+            </form>
         </div>
-        <div class="col-md-6 d-flex align-items-end">
-            <button type="submit" class="btn btn-primary w-100">Apply Filter</button>
+        <div class="col-md-6">
+            <form method="GET" action="/view_expenses" class="filter-card card p-3 h-100">
+                <div class="mb-3">
+                    <label class="form-label" for="month">Filter by Month</label>
+                    <input id="month" type="month" name="month" class="form-control" value="{{ selected_month }}" />
+                </div>
+                <button type="submit" class="btn btn-primary w-100">Apply Month Filter</button>
+            </form>
         </div>
-    </form>
+    </div>
+    <div class="row mb-4">
+        <div class="col-12 text-end">
+            <a href="/view_expenses" class="btn btn-outline-secondary">Reset Filters</a>
+        </div>
+    </div>
 
     <div class="table-responsive">
         <table class="expense-table mb-0">

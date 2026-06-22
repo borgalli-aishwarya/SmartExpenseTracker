@@ -2,22 +2,13 @@
 
 {% block content %}
 
-<form method="GET" class="dashboard-intro mb-4">
-    <div class="intro-copy">
-        <h1>Dashboard</h1>
-        <p class="text-muted">A quick snapshot of your budget, spending, and recent activity.</p>
-    </div>
-
-    <div class="month-picker-card">
-        <label for="monthPicker">Select month</label>
-        <input
-            id="monthPicker"
-            type="month"
-            name="month"
-            value="{{ selected_month }}"
-            class="month-input"
-            onchange="this.form.submit()">
-    </div>
+<form method="GET" class="mb-4">
+    <input
+        type="month"
+        name="month"
+        value="{{ selected_month }}"
+        onchange="this.form.submit()"
+        class="form-control">
 </form>
 
 {% if budget_amount > 0 and alert_message %}

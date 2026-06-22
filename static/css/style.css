@@ -661,6 +661,19 @@ nav.navbar .nav-link:hover{
     padding:25px;
 }
 
+.filter-card{
+    border: 1px solid rgba(15, 23, 42, 0.08);
+    border-radius: 24px;
+    background: #ffffff;
+    box-shadow: 0 20px 50px rgba(15, 23, 42, 0.06);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.filter-card:hover{
+    transform: translateY(-3px);
+    box-shadow: 0 24px 60px rgba(15, 23, 42, 0.10);
+}
+
 .table-card-header{
     display:flex;
     justify-content:space-between;

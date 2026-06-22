@@ -9,6 +9,14 @@
             <h2>Charts</h2>
             <p class="text-muted">Only your spending visuals, with no extra dashboard controls.</p>
         </div>
+        <form class="chart-filter-form" method="get" action="/charts">
+            <label for="monthSelect" class="sr-only">Month filter</label>
+            <input id="monthSelect" type="month" name="month" value="{{ selected_month }}" />
+            <button type="submit" class="btn btn-primary">Filter</button>
+            {% if selected_month %}
+            <a href="/charts" class="btn btn-secondary">Clear</a>
+            {% endif %}
+        </form>
     </div>
 
     <div class="chart-grid" id="chartsGrid">
@@ -33,7 +41,15 @@
             </div>
             <img src="/{{ third_chart }}" class="chart-img" alt="Trend chart" />
         </div>
+
+        <div class="chart-card chart-card-large chart-clickable" role="button" tabindex="0" aria-label="Open monthly total expenses chart" data-chart-title="Monthly Total Expenses" data-chart-src="/{{ monthly_line_chart if monthly_line_chart else third_chart }}">
+            <div class="chart-card-head">
+                <h4 class="chart-card-title">Monthly Total Expenses</h4>
+            </div>
+            <img src="/{{ (monthly_line_chart if monthly_line_chart else third_chart) }}" class="chart-img" alt="Monthly total expenses chart" />
+        </div>
     </div>
+
 
     <!-- Modal (single chart view) -->
     <div class="chart-modal-overlay" id="chartModalOverlay" aria-hidden="true">

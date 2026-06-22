@@ -31,7 +31,9 @@ with app.app_context():
     db.create_all()
 
 
+
 # -------------------------------
+
 # Helper Function
 # -------------------------------
 def get_current_user():
@@ -58,10 +60,10 @@ def dashboard():
     if not current_user:
         return redirect(url_for("login"))
 
-    selected_month = request.args.get(
-        "month",
-        datetime.now().strftime("%Y-%m")
-    )
+    selected_month = request.args.get("month")
+
+    if not selected_month:
+        selected_month = datetime.now().strftime("%Y-%m")
 
     year, month = map(int, selected_month.split("-"))
 
@@ -79,7 +81,8 @@ def dashboard():
     )
 
     budget = Budget.query.filter_by(
-        user_id=current_user.id
+        user_id=current_user.id,
+        month=selected_month
     ).first()
 
     budget_amount = budget.budget_amount if budget else 0
@@ -112,6 +115,10 @@ def dashboard():
 
     recent_expenses = (
         Expense.query.filter_by(user_id=current_user.id)
+        .filter(
+            db.extract("year", Expense.date) == year,
+            db.extract("month", Expense.date) == month,
+        )
         .order_by(Expense.id.desc())
         .limit(5)
         .all()
@@ -119,12 +126,20 @@ def dashboard():
 
     highest = (
         Expense.query.filter_by(user_id=current_user.id)
+        .filter(
+            db.extract("year", Expense.date) == year,
+            db.extract("month", Expense.date) == month,
+        )
         .order_by(Expense.amount.desc())
         .first()
     )
 
     lowest = (
         Expense.query.filter_by(user_id=current_user.id)
+        .filter(
+            db.extract("year", Expense.date) == year,
+            db.extract("month", Expense.date) == month,
+        )
         .order_by(Expense.amount.asc())
         .first()
     )
@@ -281,6 +296,7 @@ def set_budget():
         return redirect(url_for("login"))
 
     success_message = None
+    selected_month = datetime.now().strftime("%Y-%m")
 
     if request.method == "POST":
 
@@ -289,24 +305,21 @@ def set_budget():
         )
 
         month = request.form["month"]
+        selected_month = month
 
         budget = Budget.query.filter_by(
-            user_id=current_user.id
+            user_id=current_user.id,
+            month=month
         ).first()
 
         if budget:
-
             budget.budget_amount = budget_amount
-            budget.month = month
-
         else:
-
             budget = Budget(
                 budget_amount=budget_amount,
                 month=month,
                 user_id=current_user.id
             )
-
             db.session.add(budget)
 
         db.session.commit()
@@ -315,7 +328,8 @@ def set_budget():
 
     return render_template(
         "set_budget.html",
-        success_message=success_message
+        success_message=success_message,
+        selected_month=selected_month
     )
 
 
@@ -363,11 +377,19 @@ def view_expenses():
         return redirect(url_for("login"))
 
     selected_category = request.args.get("category", "")
+    selected_month = request.args.get("month", "")
 
     query = Expense.query.filter_by(user_id=current_user.id)
 
-    if selected_category and selected_category != "All":
+    if selected_category:
         query = query.filter_by(category=selected_category)
+
+    if selected_month:
+        year, month = map(int, selected_month.split("-"))
+        query = query.filter(
+            db.extract("year", Expense.date) == year,
+            db.extract("month", Expense.date) == month,
+        )
 
     expenses = query.all()
 
@@ -384,7 +406,8 @@ def view_expenses():
         "view_expenses.html",
         expenses=expenses,
         categories=categories,
-        selected_category=selected_category
+        selected_category=selected_category,
+        selected_month=selected_month
     )
     
     
@@ -507,24 +530,25 @@ def export_excel():
 @app.route("/charts")
 def charts():
 
+
     current_user = get_current_user()
 
     if not current_user:
         return redirect(url_for("login"))
 
-    selected_month = request.args.get(
-        "month",
-        datetime.now().strftime("%Y-%m")
-    )
+    selected_month = request.args.get("month", "")
 
-    year = int(selected_month.split("-")[0])
-    month = int(selected_month.split("-")[1])
+    if selected_month:
+        year, month = map(int, selected_month.split("-"))
+        expenses_query = Expense.query.filter(
+            Expense.user_id == current_user.id,
+            db.extract("year", Expense.date) == year,
+            db.extract("month", Expense.date) == month,
+        )
+    else:
+        expenses_query = Expense.query.filter_by(user_id=current_user.id)
 
-    expenses = Expense.query.filter(
-        Expense.user_id == current_user.id,
-        db.extract("year", Expense.date) == year,
-        db.extract("month", Expense.date) == month
-    ).all()
+    expenses = expenses_query.all()
 
     total_expenses = sum(
         expense.amount
@@ -554,6 +578,40 @@ def charts():
         df = pd.DataFrame(
             [{"category": "No Data", "amount": 1, "date": pd.Timestamp.today()}]
         )
+
+    # Monthly trend chart for the last 12 months
+    now = datetime.now()
+    month_keys = []
+    for i in range(11, -1, -1):
+        d = (now.replace(day=1) - pd.DateOffset(months=i)).to_pydatetime()
+        month_keys.append(d.strftime("%Y-%m"))
+
+    monthly_totals = []
+    for key in month_keys:
+        y, m = map(int, key.split("-"))
+        total = (
+            Expense.query.with_entities(db.func.sum(Expense.amount))
+            .filter_by(user_id=current_user.id)
+            .filter(
+                db.extract("year", Expense.date) == y,
+                db.extract("month", Expense.date) == m,
+            )
+            .scalar()
+            or 0
+        )
+        monthly_totals.append(float(total))
+
+    plt.figure(figsize=(10, 5))
+    plt.plot(month_keys, monthly_totals, marker="o", color="#4f46e5")
+    plt.title("Monthly Total Expenses (Last 12 Months)")
+    plt.xlabel("Month")
+    plt.ylabel("Amount")
+    plt.xticks(rotation=45, ha="right")
+    plt.grid(True, linestyle="--", alpha=0.3)
+    plt.tight_layout()
+    monthly_line_path = "static/chart_monthly_line.png"
+    plt.savefig(monthly_line_path, transparent=False)
+    plt.close()
 
     category_totals = df.groupby("category")["amount"].sum().sort_values(ascending=False)
     category_counts = df["category"].value_counts().sort_values(ascending=False)
@@ -631,6 +689,69 @@ def charts():
         average_expense=int(df['amount'].mean() if not df.empty else 0),
         top_category=category_totals.idxmax() if not category_totals.empty else None,
         selected_month=selected_month,
+        monthly_line_chart=monthly_line_path,
+    )
+
+
+# Monthly charts
+@app.route("/monthly_charts")
+def monthly_charts():
+    current_user = get_current_user()
+
+    if not current_user:
+        return redirect(url_for("login"))
+
+    selected_range = int(request.args.get("months", 12))
+    selected_range = max(1, min(selected_range, 24))
+
+    # Build list of months (oldest -> newest) in YYYY-MM format
+    now = datetime.now()
+    month_keys = []
+    for i in range(selected_range - 1, -1, -1):
+        d = (now.replace(day=1) - pd.DateOffset(months=i)).to_pydatetime()
+        month_keys.append(d.strftime("%Y-%m"))
+
+    monthly_totals = []
+    for key in month_keys:
+        y, m = map(int, key.split("-"))
+        total = (
+            Expense.query.with_entities(db.func.sum(Expense.amount))
+            .filter_by(user_id=current_user.id)
+            .filter(
+                db.extract("year", Expense.date) == y,
+                db.extract("month", Expense.date) == m,
+            )
+            .scalar()
+            or 0
+        )
+        monthly_totals.append(float(total))
+
+    # Line chart: monthly total expenses
+    plt.figure(figsize=(10, 5))
+    plt.plot(month_keys, monthly_totals, marker="o", color="#4f46e5")
+    plt.title(f"Monthly Total Expenses (Last {selected_range} Months)")
+    plt.xlabel("Month")
+    plt.ylabel("Amount")
+    plt.xticks(rotation=45, ha="right")
+    plt.grid(True, linestyle="--", alpha=0.3)
+    plt.tight_layout()
+
+    monthly_line_path = "static/chart_monthly_line.png"
+    plt.savefig(monthly_line_path, transparent=False)
+    plt.close()
+
+    return render_template(
+        "charts.html",
+        pie_chart="static/chart_pie.png",
+        bar_chart="static/chart_bar.png",
+        third_chart=monthly_line_path,
+        third_title=f"Monthly Total Expenses (Last {selected_range} Months)",
+        total_expenses=0,
+        category_count=0,
+        average_expense=0,
+        top_category=None,
+        selected_month=datetime.now().strftime("%Y-%m"),
+        monthly_line_chart=monthly_line_path,
     )
 
 

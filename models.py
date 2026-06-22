@@ -65,19 +65,11 @@ class Expense(db.Model):
 class Budget(db.Model):
     __tablename__ = "budgets"
 
-    id = db.Column(
-        db.Integer,
-        primary_key=True
-    )
+    id = db.Column(db.Integer, primary_key=True)
 
-    budget_amount = db.Column(
-        db.Float,
-        nullable=False
-    )
+    budget_amount = db.Column(db.Float, nullable=False)
 
-    month = db.Column(
-        db.String(20)
-    )
+    month = db.Column(db.String(20), nullable=False)
 
     user_id = db.Column(
         db.Integer,
